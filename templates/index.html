@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepRay - Home</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<header class="navbar">
+  <h1 class="logo">DEEP RAY</h1>
+  <ul>
+    <li><a href="{{ url_for('serve_html') }}">Home</a></li>
+    <li><a href="{{ url_for('diagnosis') }}">AI Model</a></li>
+    <li><a href="{{ url_for('patients_rec') }}">Patient Records</a></li>
+    {% if session.get('username') %}
+      <li><a href="{{ url_for('logout') }}">Log out ({{ session['username'] }})</a></li>
+    {% else %}
+      <li><a href="{{ url_for('login') }}">Log in</a></li>
+    {% endif %}
+  </ul>
+</header>
+    <div class="hero">
+        <h1 >DEEP RAY</h1>
+        <h2>Revolutionizing Lung Health through AI-Enhanced X-ray Diagnostics.</h2>
+    </div>
+
+</body>
+</html>
+

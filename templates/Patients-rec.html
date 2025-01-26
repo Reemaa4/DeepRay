@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepRay - Patient Records</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <!-- Navbar -->
+  <header class="navbar">
+    <h1 class="logo">DEEP RAY</h1>
+    <ul>
+      <li><a href="{{ url_for('serve_html') }}">Home</a></li>
+      <li><a href="{{ url_for('diagnosis') }}">AI Model</a></li>
+      <li><a href="{{ url_for('patients_rec') }}">Patient Records</a></li>
+      {% if session.get('username') %}
+        <li><a href="{{ url_for('logout') }}">Log out ({{ session['username'] }})</a></li>
+      {% else %}
+        <li><a href="{{ url_for('login') }}">Log in</a></li>
+      {% endif %}
+    </ul>
+  </header>
+  <main>
+    <!-- Patient ID Section -->
+    <div class="accordion" id="reports-section">
+      <form>
+        <div class="accordion-item" onclick="toggleAccordion(this)">Reports <span>▼</span></div>
+        <div class="accordion-content">
+          <div class="accordion-item" onclick="showWriteReport()">Write New Report</div>
+          <div class="accordion-item" onclick="showMedicalReports()">Medical Reports</div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Write Report Section -->
+    <div id="write-report-section" style="display: none;">
+      <div class="report-container">
+        <div class="report-title">Write a Report:</div>
+        <textarea id="diagnosis" placeholder="Write the diagnosis here..."></textarea>
+        <div class="button-container">
+          <button class="back-btn" onclick="goBack()">Back</button>
+          <label class="upload-btn">
+            <i class="fas fa-upload"></i> Upload chest x-ray images
+            <input type="file" class="file-input" accept="image/*">
+          </label>
+          <button type="button" class="submit-btn" onclick="submitReport()">Submit</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Medical Reports Section -->
+    <div id="medical-reports-section" class="accordion" style="display: none;">
+      <h2>Previous Reports:</h2>
+      <div class="search-bar">
+        <input type="text" id="search" placeholder="Search..." oninput="filterReports()">
+      </div>
+      <table class="reports-table">
+        <thead>
+          <tr>
+            <th>Select All <input type="checkbox" onclick="toggleSelectAll(this)"></th>
+            <th>Patient ID</th>
+            <th>Diagnosis</th>
+            <th>X-ray Image</th>
+            <th>Edit/Delete</th>
+          </tr>
+        </thead>
+        <tbody id="reports-body">
+          <!-- Sample Data will be dynamically inserted here -->
+        </tbody>
+      </table>
+      <div class="button-container">
+        <button class="submit-back-btn" onclick="goBack()">Back</button>
+        <button class="submit-btn" onclick="saveChanges()">Save Changes</button>
+      </div>
+      <div class="notification" id="notification"></div>
+    </div>
+
+    <!-- Modal for Notifications -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <p id="modal-message"></p>
+        <button class="close-btn" onclick="closeModal()">OK</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let reportIdCounter = 1; 
+    let reports = [];
+    let currentEditingReportId = null;
+
+    function toggleAccordion(element) {
+      const content = element.nextElementSibling;
+      const isActive = content.style.display === 'block';
+
+      if (isActive) {
+        content.style.display = 'none';
+        element.classList.remove('active');
+      } else {
+        content.style.display = 'block';
+        element.classList.add('active');
+      }
+    }
+
+    function showWriteReport() {
+      document.getElementById('reports-section').style.display = 'none';
+      document.getElementById('write-report-section').style.display = 'block';
+    }
+
+    function showMedicalReports() {
+      document.getElementById('reports-section').style.display = 'none';
+      document.getElementById('medical-reports-section').style.display = 'block';
+      renderReports();
+    }
+
+    function submitReport() {
+      const diagnosis = document.getElementById('diagnosis').value.trim();
+
+      if (diagnosis) {
+        const newReport = {
+          id: reportIdCounter++, 
+          diagnosis: diagnosis,
+          image: "Image.png" 
+        };
+        reports.unshift(newReport); 
+        showModal('Report submitted successfully!');
+        document.getElementById('diagnosis').value = ''; 
+        renderReports();
+        document.getElementById('write-report-section').style.display = 'none';
+        document.getElementById('medical-reports-section').style.display = 'block'; 
+      } else {
+        showModal('Please enter a diagnosis.');
+      }
+    }
+
+    function renderReports() {
+      const tbody = document.getElementById('reports-body');
+      tbody.innerHTML = ''; 
+      
+      fetch('/get_reports')
+        .then(response => response.json())
+        .then(reports => {
+          reports.forEach(report => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td><input type="checkbox"></td>
+              <td>${report.Patient_ID}</td>
+              <td>${report.Diagnosis}</td>
+              <td><img src="data:image/png;base64,${report.XRay_Image}" alt="X-ray Image" style="width: 100px; height: auto;"></td>
+              <td>
+                <button onclick="editReport(${report.Patient_ID})"><i class="fas fa-pencil-alt"></i> Edit</button>
+                <span>&nbsp;</span>
+                <button onclick="deleteReport(${report.Patient_ID})"><i class="fas fa-trash-alt"></i> Delete</button>
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching reports:', error);
+        });
+    }
+
+    function filterReports() {
+      const searchInput = document.getElementById('search').value.toLowerCase();
+      const filteredReports = reports.filter(report =>
+        report.Patient_ID.toString().includes(searchInput) || 
+        report.Diagnosis.toLowerCase().includes(searchInput)
+      );
+      const tbody = document.getElementById('reports-body');
+      tbody.innerHTML = ''; 
+      filteredReports.forEach(report => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><input type="checkbox"></td>
+          <td>${report.Patient_ID}</td>
+          <td>${report.Diagnosis}</td>
+          <td><img src="data:image/png;base64,${report.XRay_Image}" alt="X-ray Image" style="width: 100px; height: auto;"></td>
+          <td>
+            <button onclick="editReport(${report.Patient_ID})"><i class="fas fa-pencil-alt"></i> Edit</button>
+            <span>&nbsp;</span>
+            <button onclick="deleteReport(${report.Patient_ID})"><i class="fas fa-trash-alt"></i> Delete</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function toggleSelectAll(selectAllCheckbox) {
+      const checkboxes = document.querySelectorAll('.reports-table tbody input[type="checkbox"]');
+      checkboxes.forEach(checkbox => checkbox.checked = selectAllCheckbox.checked);
+    }
+
+    function editReport(reportId) {
+  const newDiagnosis = prompt('Enter the new diagnosis:');
+  if (newDiagnosis) {
+    fetch(`/edit_report/${reportId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ diagnosis: newDiagnosis })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showModal('Report updated successfully!');
+        renderReports();  // إعادة تحميل التقارير بعد التعديل
+      } else {
+        showModal('Error updating report!');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showModal('Error updating report!');
+    });
+  }
+}
+
+
+    function saveChanges() {
+      const notification = document.getElementById('notification');
+      notification.style.display = 'block';
+      notification.textContent = 'Changes saved!';
+      showModal('Changes have been saved!');
+    }
+
+    function showModal(message) {
+      document.getElementById('modal-message').textContent = message;
+      document.getElementById('modal').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+
+    function goBack() {
+      document.getElementById('write-report-section').style.display = 'none';
+      document.getElementById('medical-reports-section').style.display = 'none';
+      document.getElementById('reports-section').style.display = 'block';
+    }
+
+    function deleteReport(reportId) {
+      fetch(`/delete_report/${reportId}`, {
+        method: 'DELETE',
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showModal('Report deleted successfully!');
+          renderReports();  // إعادة تحميل التقارير بعد الحذف
+        } else {
+          showModal('Error deleting report!');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showModal('Error deleting report!');
+      });
+    }
+  </script>
+</body>
+</html>

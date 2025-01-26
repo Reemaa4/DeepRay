@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepRay - AI Diagnosis</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <h1 class="logo">DEEP RAY</h1>
+        <ul>
+          <li><a href="{{ url_for('serve_html') }}">Home</a></li>
+          <li><a href="{{ url_for('diagnosis') }}">AI Model</a></li>
+          <li><a href="{{ url_for('patients_rec') }}">Patient Records</a></li>
+          {% if session.get('username') %}
+            <li><a href="{{ url_for('logout') }}">Log out ({{ session['username'] }})</a></li>
+          {% else %}
+            <li><a href="{{ url_for('login') }}">Log in</a></li>
+          {% endif %}
+        </ul>
+    </header>
+    <main class="diagnosis-section">
+        <h2>AI Diagnosis</h2>
+        <form class="diagnosis-form">
+            <label for="patient-id">Patient ID:</label>
+            <input type="text" id="patient-id" name="patient-id" placeholder="Enter Patient ID" required>
+
+            <label for="xray-upload">Choose image to upload:</label>
+            <input type="file" id="xray-upload" name="xray" accept="image/*" required>
+            
+            <button type="submit" class="btn">Get Diagnosis</button>
+        </form>
+        <div class="result-section">
+            <canvas id="canvas" style="display:none;"></canvas>
+            <img id="uploaded-image" style="max-width: 100%; display: none;">
+        </div>
+        <div id="diagnosis-result"></div>
+        
+        <!-- Button container placed here for center alignment -->
+        <div class="button-container" style="display: none;">
+            <button id="save-diagnosis" class="btn">Save Diagnosis</button>
+            <button id="edit-diagnosis" class="btn">Edit Diagnosis</button>
+        </div>
+
+    </main>
+    <script>
+        const form = document.querySelector(".diagnosis-form");
+        const patientIdInput = document.getElementById("patient-id");
+        const fileInput = document.getElementById("xray-upload");
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const uploadedImage = document.getElementById("uploaded-image");
+        const diagnosisResult = document.getElementById("diagnosis-result");
+        const saveDiagnosisBtn = document.getElementById("save-diagnosis");
+        const editDiagnosisBtn = document.getElementById("edit-diagnosis");
+        const buttonContainer = document.querySelector(".button-container");
+
+        let diagnosis = "";  // Variable to hold the diagnosis result
+
+        // Handle form submission for diagnosis prediction
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();  // Prevent default form submission
+
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Please upload an image.");
+                return;
+            }
+
+            const img = new Image();
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                img.src = e.target.result;
+            };
+
+            img.onload = () => {
+                // Resize the image to 224x224
+                canvas.width = 224;
+                canvas.height = 224;
+                ctx.drawImage(img, 0, 0, 224, 224);
+
+                // Display the uploaded image
+                uploadedImage.src = img.src;
+                uploadedImage.style.display = 'block';
+
+                canvas.toBlob(async (blob) => {
+                    const formData = new FormData();
+                    formData.append("patient-id", patientIdInput.value);
+                    formData.append("xray", blob, "xray.png");  // Send the image as a blob
+
+                    // Send the data to the server using POST
+                    try {
+                        const response = await fetch("http://127.0.0.1:5000/predict/", {
+                            method: "POST",
+                            body: formData,
+                        });
+
+                        const data = await response.json();
+
+                        // Display prediction result
+                        if (data.prediction !== undefined) {
+                            diagnosis = data.prediction;
+                            diagnosisResult.innerHTML = `Diagnosis Result: ${diagnosis}`;
+                            buttonContainer.style.display = 'block';  // Show save and edit buttons
+                        } else {
+                            alert("Error: " + data.error);
+                        }
+                    } catch (error) {
+                        console.error("Error uploading file:", error);
+                        alert("Error uploading file.");
+                    }
+                }, "image/png");
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+        // Handle save diagnosis button click
+        saveDiagnosisBtn.addEventListener('click', async () => {
+            canvas.toBlob(async (blob) => {
+            const formData = new FormData();
+            formData.append("patient-id", patientIdInput.value);
+            formData.append("diagnosis", diagnosis);
+            formData.append("xray", blob, "xray.png");
+
+            // Log the formData to ensure all fields are included
+            console.log("Form Data:", formData);
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/save_diagnosis", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                const data = await response.json();
+                if (data.message) {
+                    alert(data.message);  // Show success message
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (error) {
+                console.error("Error uploading file:", error);
+                alert("Error uploading file.");
+            }
+        }, "image/png");
+
+        });
+
+        // Handle edit diagnosis button click
+        editDiagnosisBtn.addEventListener('click', () => {
+            const newDiagnosis = prompt("Enter new diagnosis:", diagnosis); // اطلب من المستخدم إدخال التشخيص الجديد
+            if (newDiagnosis) {  // إذا قام المستخدم بإدخال قيمة جديدة
+                diagnosis = newDiagnosis; // قم بتحديث التشخيص
+                diagnosisResult.innerHTML = `Diagnosis Result: ${diagnosis}`; // عرض التشخيص الجديد في النتيجة
+            }
+        });
+
+    </script>
+</body>
+</html>
