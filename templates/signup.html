@@ -15,7 +15,7 @@
       <li><a href="{{ url_for('serve_html') }}">Home</a></li>
       <li><a href="{{ url_for('diagnosis') }}">AI Model</a></li>
       <li><a href="{{ url_for('patients_rec') }}">Patient Records</a></li>
-      <li><a href="{{ url_for('log_in') }}">Log in</a></li>
+      <li><a href="{{ url_for('login') }}">Log in</a></li>
     </ul>
   </header>
 
@@ -23,8 +23,8 @@
   <div class="login-container">
     <form method="POST" action="/signup">
       <div class="field">
-        <label for="username">Email:</label>
-        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+        <label for="username">ID:</label>
+        <input type="text" id="username" name="username" placeholder="Enter your ID" required>
       </div>
       <div class="field">
         <label for="password">Password:</label>

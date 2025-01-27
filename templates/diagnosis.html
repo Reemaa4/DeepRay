@@ -42,6 +42,7 @@
         <div class="button-container" style="display: none;">
             <button id="save-diagnosis" class="btn">Save Diagnosis</button>
             <button id="edit-diagnosis" class="btn">Edit Diagnosis</button>
+
         </div>
 
     </main>
@@ -117,6 +118,7 @@
 
             reader.readAsDataURL(file);
         });
+        const downloadDiagnosisBtn = document.getElementById("download-diagnosis");
 
         // Handle save diagnosis button click
         saveDiagnosisBtn.addEventListener('click', async () => {
@@ -151,10 +153,10 @@
 
         // Handle edit diagnosis button click
         editDiagnosisBtn.addEventListener('click', () => {
-            const newDiagnosis = prompt("Enter new diagnosis:", diagnosis); // اطلب من المستخدم إدخال التشخيص الجديد
-            if (newDiagnosis) {  // إذا قام المستخدم بإدخال قيمة جديدة
-                diagnosis = newDiagnosis; // قم بتحديث التشخيص
-                diagnosisResult.innerHTML = `Diagnosis Result: ${diagnosis}`; // عرض التشخيص الجديد في النتيجة
+            const newDiagnosis = prompt("Enter new diagnosis:", diagnosis);
+            if (newDiagnosis) {  
+                diagnosis = newDiagnosis; 
+                diagnosisResult.innerHTML = `Diagnosis Result: ${diagnosis}`; 
             }
         });
 

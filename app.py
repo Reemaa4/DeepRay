@@ -11,8 +11,8 @@ from pymongo import MongoClient
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
-model = load_model(r'D:\Programming\FinalProjects\DeepRayWeb2\final_balanced_model.h5')
-client = MongoClient("mongodb://localhost:27017/")
+model = load_model(r'final_balanced_model.h5')
+client = MongoClient("mongodb+srv://neuhessah:cV3oyvksmEw3DcL3@cluster0.1tzbn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 db = client["DeepRayWeb"]
 users_collection = db["users"]
 patients_collection = db["patients"]
@@ -37,6 +37,9 @@ def patients_rec():
         flash("You need to log in to access this page.", "error")
         return redirect(url_for('login'))
     return render_template('patients-rec.html')
+
+
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -100,13 +103,16 @@ def predict():
         img = cv2.resize(img, (224, 224))
         img = img / 255.0
         img = np.expand_dims(img, axis=0)
-        prediction = model.predict(img)
-        diagnosis = "Positive" if prediction[0][0] > 0.5 else "Negative"
-        return jsonify({"prediction": diagnosis})
+        predictions = model.predict(img)
+        predicted_class = np.argmax(predictions, axis=1)
+        class_labels = ['COVID19', 'NORMAL', 'PNEUMONIA', 'TUBERCULOSIS']
+        result = class_labels[predicted_class[0]]
+        return jsonify({"prediction": result})
     except Exception as e:
         print("Error during prediction:", e)
         return jsonify({"error": "An error occurred during prediction."}), 500
-    
+
+   
 @app.route('/save_diagnosis', methods=['POST'])
 def save_diagnosis():
     if 'username' not in session:
@@ -129,13 +135,13 @@ def save_diagnosis():
         "Username": session['username'],
         "Patient_ID": patient_id,
         "Diagnosis": diagnosis_result,
-        "X-Ray_Image": image_base64
+        "XRay_Image": image_base64
     })
     return jsonify({"message": "Diagnosis saved successfully!"})
 
 @app.route('/get_reports', methods=['GET'])
 def get_reports():
-    reports = list(patients_collection.find({}, {'_id': 0, 'Username': 0}))  # استبعاد الحقول غير اللازمة
+    reports = list(patients_collection.find({}, {'_id': 0, 'Username': 0})) 
     return jsonify(reports)
 
 @app.route('/delete_report/<string:patient_id>', methods=['DELETE'])
