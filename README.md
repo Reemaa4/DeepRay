@@ -4,6 +4,9 @@
 ## Overview
 The Chest X-Ray Diagnostic System is an AI-powered application designed to analyze chest X-ray images and provide automated diagnostic reports. The system integrates multiple modules, including a user-friendly frontend, a robust backend, advanced AI models for image analysis, and a secure cloud-based database for data storage. This modular architecture ensures scalability, efficiency, and accuracy in medical image analysis.
 
+![Image](https://github.com/user-attachments/assets/a6abb246-7d05-4046-b67b-3346dba4ea5f)
+
+
 ## System Architecture
 The system is composed of three main modules, each contributing to the seamless operation of the diagnostic workflow.
 
