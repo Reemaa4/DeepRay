@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
 model = load_model(r'final_balanced_model.h5')
-client = MongoClient("") # mongo
+client = MongoClient("") # we removed the mongo link 
 db = client["DeepRayWeb"]
 users_collection = db["users"]
 patients_collection = db["patients"]
