@@ -4,7 +4,7 @@
 ## Overview
 The Chest X-Ray Diagnostic System is an AI-powered application designed to analyze chest X-ray images and provide automated diagnostic reports. The system integrates multiple modules, including a user-friendly frontend, a robust backend, advanced AI models for image analysis, and a secure cloud-based database for data storage. This modular architecture ensures scalability, efficiency, and accuracy in medical image analysis.
 
-![Image](https://github.com/user-attachments/assets/441a0b83-c075-4b51-b1e8-196ce6b33776)
+![Image](https://github.com/user-attachments/assets/a6abb246-7d05-4046-b67b-3346dba4ea5f)
 
 
 ## System Architecture
@@ -35,6 +35,8 @@ The system securely stores X-ray images, diagnostic results, and patient records
 
 ## System Workflow
 The diagnostic process begins when a user uploads a chest X-ray image via the **Flask frontend**. The backend validates the image and forwards it to the AI Model module, where deep learning models analyze the image and generate a diagnostic report. The backend then stores the image and diagnostic results in the **cloud MongoDB database**, ensuring seamless access to past diagnoses. Finally, the frontend retrieves and presents the diagnostic report to the user.
+
+![Image](https://github.com/user-attachments/assets/98b34590-6982-4207-92ef-0acda4a1edd5)
 
 ## Deployment
 The system is designed for accessibility across multiple devices, including **laptops, desktops, and mobile phones**. It is hosted on **cloud platforms** such as **AWS, Azure, or Google Cloud**, ensuring scalability and high availability. By leveraging modern web technologies, including **Flask, TensorFlow/Keras, and MongoDB Atlas**, the system delivers optimal performance and security.
