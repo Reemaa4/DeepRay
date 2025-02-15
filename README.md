@@ -38,8 +38,6 @@ The diagnostic process begins when a user uploads a chest X-ray image via the **
 
 ![Image](https://github.com/user-attachments/assets/98b34590-6982-4207-92ef-0acda4a1edd5)
 
-## Deployment
-The system is designed for accessibility across multiple devices, including **laptops, desktops, and mobile phones**. It is hosted on **cloud platforms** such as **AWS, Azure, or Google Cloud**, ensuring scalability and high availability. By leveraging modern web technologies, including **Flask, TensorFlow/Keras, and MongoDB Atlas**, the system delivers optimal performance and security.
 
 ## Team Members
 - Reema Abdullah Albishri, 442014181
