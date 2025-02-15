@@ -36,11 +36,10 @@ The diagnostic process begins when a user uploads a chest X-ray image via the **
 The system is designed for accessibility across multiple devices, including **laptops, desktops, and mobile phones**. It is hosted on **cloud platforms** such as **AWS, Azure, or Google Cloud**, ensuring scalability and high availability. By leveraging modern web technologies, including **Flask, TensorFlow/Keras, and MongoDB Atlas**, the system delivers optimal performance and security.
 
 ## Team Members
-By:
 - Reema Abdullah Albishri, 442014181
 - Norah Saleh Alfuntukh, 442022325
 - Hessa Abdullah Albahlal, 442014051
 - Rahaf Mushary Aldukhayl, 442015176
 
-Supervised By:
+## Supervised By:
 - Dr. Eman Alzaid
